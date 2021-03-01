@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: gwtest
+server:
+  port: 8065
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: ${EUREKA_URI:http://localhost:8761/eureka}
+  instance:
+    preferIpAddress: true
