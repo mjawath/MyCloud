@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: gwtest
+server:
+  port: 8065
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://registry:8761/eureka
+      

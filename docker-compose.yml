@@ -1,0 +1,127 @@
+version: "3.3"
+services:
+    ngx:
+       image: nginx
+       volumes:
+         - ./static-html:/usr/share/nginx/html
+         - ./nginx/default:/etc/nginx/nginx.conf
+       ports:
+         - "8080:80"
+       restart: always
+#    networks: 
+#      - host
+#    network_mode: "host"
+#    environment:
+      #- NGINX_HOST=foobar.com
+      #- NGINX_PORT=80
+
+    wordpress:
+       image: wordpress
+       ports: 
+         - "8000:80"
+       restart: always
+       volumes: ['./wp:/var/www/html']
+       environment:
+         WORDPRESS_DB_HOST: mysql-dev
+         WORDPRESS_DB_USER: root
+         WORDPRESS_DB_PASSWORD: root
+#     networks:
+#      - host
+#     network_mode: "host"
+
+    adminer:
+      depends_on: 
+       - mysql-dev
+      image: adminer
+      restart: always
+      ports:
+        - "8001:8080"
+#    networks:
+#      - host
+#    network_mode: "host"
+
+
+    registry:
+      container_name: "registry"
+      build: registry
+      image: "registry"
+      # network_mode: "host"
+      ports: 
+         - "8761:8761"
+      volumes:
+        - "./registry/app:/app"
+      networks: 
+        - mysite
+    gateway:
+      container_name: "gateway"
+      build: gateway
+      image: "gateway"
+      #network_mode: "host"
+      ports: 
+         - "8700:8000"
+      volumes:
+        - "./gateway/app:/app"              
+      environment:
+        - JAVA_OPTS=
+          -DEUREKA_SERVER=http://registry:8761/eureka  
+      depends_on:
+        - registry
+      networks: 
+        - mysite
+
+    gwtest:
+      container_name: "gwtest"
+      build: gwtest
+      image: "gwtest"
+      #network_mode: "host"    
+      ports: 
+        - "8065:8065"
+      volumes:
+        - "./gwtest/app:/app"
+      environment:
+        - JAVA_OPTS=
+          -DEUREKA_SERVER=http://registry:8761/eureka  
+      depends_on:
+        - registry
+      networks: 
+        - mysite
+    spa:
+      build: app
+      image: "spa"
+      #network_mode: "host"
+
+    # redis:
+    #   image: "redis:alpine"
+    
+    postgres:
+      image: postgres
+      restart: always
+      environment:
+        POSTGRES_PASSWORD: root
+      ports:
+        - "5432:5432"
+      volumes:
+        - "./postgres-data:/var/lib/postgresql/data"
+#    network_mode: "host"
+  
+    mysql-dev:
+      image: mysql/mysql-server
+      environment:
+        MYSQL_ROOT_PASSWORD: root
+       #MYSQL_DATABASE:  ms
+        MYSQL_ROOT_HOST: "%"
+      ports:
+        - "3306:3306"
+      volumes:
+        - "./mysql-data:/var/lib/mysql"
+#    networks: 
+#      - host  
+#    network_mode: "host"
+
+
+networks:
+  mysite:
+   driver: bridge 
+#volumes:
+#  mysql:
+
